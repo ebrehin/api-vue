@@ -1,54 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://jakarta.ee/xml/ns/jakartaee" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd" id="WebApp_ID" version="5.0">
-  <display-name>Servlet_JSP_Ajax</display-name>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://jakarta.ee/xml/ns/jakartaee"
+  xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+  id="WebApp_ID" version="5.0">
+  <display-name>api-vue</display-name>
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
-    <welcome-file>index.jsp</welcome-file>
-    <welcome-file>index.htm</welcome-file>
-    <welcome-file>default.html</welcome-file>
-    <welcome-file>default.jsp</welcome-file>
-    <welcome-file>default.htm</welcome-file>
   </welcome-file-list>
-  <servlet>
-    <description></description>
-    <display-name>SportServlet</display-name>
-    <servlet-name>SportServlet</servlet-name>
-    <servlet-class>SportServlet</servlet-class>
-    <init-param>
-      <description></description>
-      <param-name>Sports</param-name>
-      <param-value></param-value>
-    </init-param>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>SportServlet</servlet-name>
-    <url-pattern>/SportServlet</url-pattern>
-    <url-pattern>/Sports</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>MongoDBServlet</display-name>
-    <servlet-name>MongoDBServlet</servlet-name>
-    <servlet-class>MongoDBServlet</servlet-class>
-    <init-param>
-      <description></description>
-      <param-name>Mongo</param-name>
-      <param-value></param-value>
-    </init-param>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>MongoDBServlet</servlet-name>
-    <url-pattern>/MongoDBServlet</url-pattern>
-    <url-pattern>/Mongo</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>AccesMongo</display-name>
-    <servlet-name>AccesMongo</servlet-name>
-    <servlet-class>AccesMongo</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>AccesMongo</servlet-name>
-    <url-pattern>/AccesMongo</url-pattern>
-  </servlet-mapping>
 </web-app>

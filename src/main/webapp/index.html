@@ -1,20 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<meta charset="ISO-8859-1">
-<title>Insert title here</title>
+    <meta charset="UTF-8">
+    <title>API Vue — Accueil</title>
+    <link rel="stylesheet" href="css.css" type="text/css">
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 24px; }
+        .nav-card { display: block; padding: 20px; border: 1px solid #ccc; border-radius: 6px;
+                    text-decoration: none; color: #333; text-align: center; font-size: 1.1em; }
+        .nav-card:hover { background: #f5f5f5; border-color: #888; }
+        .nav-card .label { display: block; margin-top: 8px; font-size: 0.85em; color: #666; }
+    </style>
 </head>
 <body>
-<h2>TP Servlet</h2>
-<p><a href="Sports?operation=listeSportif">Afficher tous les sportifs</a></p>
-<p><a href="Sports?operation=ajouteSport">Ajouter un sport</a></p>
-<h2>TP MongoDB</h2>
-<p><a href="Mongo?operation=listeFederations">Afficher tous les sportifs</a></p>
-<p><a href="Mongo?operation=listeFederations">Afficher toutes les f�d�rations</a></p>
-<h2>TP Vue</h2>
-<p><a href="AccesMongo?operation=listeSportifs">Afficher tous les sportifs</a></p>
-<p><a href="./sportifs-vue.html">Afficher la page html des sportifs</a></p>
-<p><a href="./formulaire-vue.html">Afficher la page html de formulaire</a></p>
-<p><a href="./composants-vue.html">Afficher la page html des composants</a></p>
+    <h1>Application Vue</h1>
+    <p>Sélectionnez une section :</p>
+    <nav class="nav-grid">
+        <a class="nav-card" href="posters.html">
+            🖼️ Posters
+            <span class="label">api-poster</span>
+        </a>
+        <a class="nav-card" href="artists.html">
+            🎨 Artistes
+            <span class="label">api-artist</span>
+        </a>
+        <a class="nav-card" href="scraping.html">
+            🎬 Films
+            <span class="label">api-scraping</span>
+        </a>
+    </nav>
 </body>
 </html>
