@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Acces sportifs avec Vue</title>
+    <link rel="stylesheet" href="css.css" type="text/css">
+</head>
+<body>
+    <main id="app">
+        <h1>Acces aux sportifs de MongoDB avec Vue</h1>
+        <p>Code écrit par <a :href="siteWeb">{{ auteur }}</a>.</p>
+        <p>Il y a {{ nbSportifs }} sportifs dans la base.</p>
+        <div v-for="sp in sportifs" :key="sp._id"> 
+            <h3>{{ sp.prenom }} {{ sp.nom }}</h3>
+            <p>Habite {{ sp.adresse.rue }} &ndash; {{ sp.adresse.codePostal }} {{ sp.adresse.ville }}</p>
+            <p>
+                Age : {{ sp.age }} 
+                <button @click="incrementerAge(sp._id, $event)">+</button>
+                <button @click="decrementerAge(sp._id, $event)">&ndash;</button>
+            </p>
+            <div v-if="sp.disciplines">Liste des disciplines :
+                <ul>
+                    <li v-for="(disc, cle) in sp.disciplines" :key="cle"> {{ disc }}</li>
+                </ul>
+            </div>
+            <div v-else>Ne pratique aucune discipline sportive.</div>
+        </div>
+        <p><br /></p>
+    </main>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const Sportifs = {
+            data() {
+                return {
+                    auteur: "Eric Cariou",
+                    siteWeb: "https://lab-sticc.univ-brest.fr/~ecariou/",
+                    sportifs: []
+                }    
+            },
+            methods : {
+                incrementerAge(id, event) {
+                    sp = this.sportifs.find(sportif => sportif._id==id)
+                    sp.age += 1
+                },
+                decrementerAge(id, event) {
+                    sp = this.sportifs.find(sportif => sportif._id==id)
+                    sp.age -= 1
+                },
+            },
+            created()  {
+                fetch('http://localhost:8080/Servlet_JSP_Ajax/AccesMongo?operation=listeSportifs')
+  				.then((response) => response.json())
+  				.then((json) => {this.sportifs = json});
+            },
+            computed: {
+                nbSportifs() {
+                    return this.sportifs.length
+                }
+            }
+        }
+        const app = Vue.createApp(Sportifs).mount('#app')
+    </script>
+</body>
+</html>

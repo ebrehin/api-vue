@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Acces sportifs avec Vue</title>
+    <link rel="stylesheet" href="css.css" type="text/css">
+</head>
+
+<body>
+    <main id="app">
+        <h1>Composants avec Vue</h1>
+        <p v-show="leSelectionne"><b>Le dernier sélectionnné est <span style="color:green">{{ leSelectionne }}</span></b></p>
+        <affichersportif v-for="sp in sportifs" :key="sp._id" :lesportif="sp" @selectionne="afficherSelectionne"></affichersportif>
+        <affichersportif :lesportif="monRoger" @selectionne="afficherSelectionne">
+            <p><i style="color:orange">J'affiche Roger tout seul, sans la liste</i></p>
+        </affichersportif>
+    </main>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+       
+        // le composant racine qui va charger les sportifs
+        const ChargerSportif = {
+            data() {
+                return {
+                    sportifs: [],
+                    monRoger: {"_id": 1, "prenom": "Roger", "nom": "Blanchard", "age": 57, "genre": "homme", "adresse": {"rue": "12 rue de Siam", "ville": "Brest", "codePostal": 29200}, "disciplines": ["100m", "200m", "descente"], "marie": true},
+                    leSelectionne: ""
+                }
+            },
+            created()  {
+              fetch('http://localhost:8080/Servlet_JSP_Ajax/AccesMongo?operation=listeSportifs')
+  				.then((response) => response.json())
+  				.then((json) => {this.sportifs = json});
+            }, 
+            methods: {
+                afficherSelectionne(prenom, nom) {
+                    this.leSelectionne = prenom + " "+nom
+                }
+            }
+        }
+
+        // le composant qui affiche un sportif passé en attribut
+        const AfficherSportif = {
+            props : [ 'lesportif' ],
+            emits: [ 'selectionne' ],
+            methods: {
+                incrementerAge() {
+                    this.lesportif.age += 1
+                },
+                decrementerAge() {
+                    this.lesportif.age -= 1
+                },
+                selectNom() {
+                    this.$emit('selectionne', this.lesportif.prenom, this.lesportif.nom)
+                }
+            },
+            template: `<h3 @click="selectNom">{{ lesportif.prenom }} {{ lesportif.nom }}</h3>
+            <slot></slot>
+            <p>Habite {{ lesportif.adresse.rue }} &ndash; {{ lesportif.adresse.codePostal }} {{ lesportif.adresse.ville }}</p>
+            <p>
+                Age : {{ lesportif.age }} 
+                <button @click="incrementerAge()">+</button>
+                <button @click="decrementerAge()">&ndash;</button>
+            </p>
+            <div v-if="lesportif.disciplines">Liste des disciplines :
+                <ul>
+                    <li v-for="(disc, cle) in lesportif.disciplines" :key="cle"> {{ disc }}</li>
+                </ul>
+            </div>
+            <div v-else>Ne pratique aucune discipline sportive.</div>`
+        }
+
+        // on crée la page en chargeant les sportifs
+        const app = Vue.createApp(ChargerSportif)
+        //création de la balise <affichersportif> pour le composant associé
+        app.component('affichersportif', AfficherSportif)
+        // montage de la page
+        app.mount("#app")
+    </script>
+</body>
+</html>

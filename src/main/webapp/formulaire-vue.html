@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Acces sportifs avec Vue</title>
+    <link rel="stylesheet" href="css.css" type="text/css">
+</head>
+<body>
+    <main id="app">
+        <h1>Gestion des formulaires en Vue</h1>
+        <p>Sélectionnez un sportif dans la liste :</p>
+        <select v-model="leSportif" style="width:250px">
+            <option v-for="sp in sportifs" :value="sp">
+                {{ sp.prenom }} {{ sp.nom }}
+            </option>
+        </select>
+        <div v-show="selectionne">
+            <p><br />Editez ses propriétés :</p>
+            <table>
+                <tr><td>Nom</td><td><input v-model="leSportif.nom"/></td></tr>
+                <tr><td>Prenom</td><td><input v-model="leSportif.prenom"/></td></tr>
+                <tr><td>Rue</td><td><input v-model="leSportif.adresse.rue"/></td></tr>
+                <tr><td>Code Postal</td><td><input v-model="leSportif.adresse.codePostal"/></td></tr>
+                <tr><td>Ville</td><td><input v-model="leSportif.adresse.ville"/></td></tr>
+            </table>
+        </div>
+    </main>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const Sportifs = {
+            data() {
+                return {
+                    selectionne: false, // n'affiche pas le formulaire à l'initialisation
+                    sportifs: [], // la liste des sportifs dans la BDD
+                    leSportif : { 'adresse': {} } // sportif courant initialisé comme vide avec une adresse vide
+                }
+            },
+            watch: {
+                leSportif(nouvelleValeur, ancienneValeur) {
+                    // la donnée "leSportif" est changée car une sélection a été faite dans la liste
+                    // on peut alors afficher le formulaire d'édition du sportif
+                    this.selectionne = true
+                }
+            },
+            created()  {
+                fetch('http://localhost:8080/Servlet_JSP_Ajax/AccesMongo?operation=listeSportifs')
+  				.then((response) => response.json())
+  				.then((json) => {this.sportifs = json});
+            }
+        }
+        const app = Vue.createApp(Sportifs).mount('#app')
+    </script>
+</body>
+</html>
