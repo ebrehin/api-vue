@@ -1,4 +1,4 @@
 /**
- * Les POJO des données sportives.
+ * Les POJO des donnees sportives.
  **/
 package donnees;
