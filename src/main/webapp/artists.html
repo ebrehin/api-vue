@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Artistes</title>
+    <link rel="stylesheet" href="css.css" type="text/css">
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        a.retour { font-size: 0.9em; color: #555; text-decoration: none; }
+        a.retour:hover { text-decoration: underline; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+
+        /* Grille de cartes */
+        .artists-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+        .artist-card { border: 1px solid #ccc; border-radius: 6px; padding: 16px; }
+        .artist-card .nom { font-weight: bold; font-size: 1.05em; }
+        .artist-card .prenom { color: #555; margin-bottom: 6px; }
+        .artist-card .age { font-size: 0.85em; color: #888; margin-bottom: 12px; }
+        .artist-card .actions { display: flex; gap: 6px; }
+        .artist-card .actions button { flex: 1; padding: 5px; font-size: 0.85em; cursor: pointer; border: none; border-radius: 4px; }
+        button.btn-danger { background: #e74c3c; color: white; }
+        button.btn-danger:hover { background: #c0392b; }
+        button.btn-edit { background: #f0ad4e; color: white; }
+        button.btn-edit:hover { background: #e09d3e; }
+        button.btn-primary { background: #3498db; color: white; border: none; border-radius: 4px;
+                             padding: 8px 16px; cursor: pointer; font-size: 1em; }
+        button.btn-primary:hover { background: #2980b9; }
+        button.btn-secondary { background: #aaa; color: white; border: none; border-radius: 4px;
+                              padding: 8px 16px; cursor: pointer; font-size: 1em; }
+
+        /* Formulaire */
+        .form-section { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px;
+                        padding: 20px; margin-bottom: 24px; }
+        .form-section h2 { margin-top: 0; }
+        .form-row { display: flex; flex-direction: column; margin-bottom: 12px; }
+        .form-row label { font-size: 0.9em; margin-bottom: 4px; color: #555; }
+        .form-row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
+        .form-actions { display: flex; gap: 10px; }
+
+        /* Messages */
+        .msg-error { color: #c0392b; background: #fde; border: 1px solid #f9c;
+                     padding: 10px; border-radius: 4px; margin-bottom: 16px; }
+        .msg-info { color: #27ae60; background: #efd; border: 1px solid #cec;
+                    padding: 10px; border-radius: 4px; margin-bottom: 16px; }
+        .loading { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <a class="retour" href="index.html">← Accueil</a>
+        <h1>🎨 Artistes</h1>
+
+        <!-- Messages -->
+        <p class="msg-error" v-if="erreur">{{ erreur }}</p>
+        <p class="msg-info"  v-if="confirmation">{{ confirmation }}</p>
+
+        <!-- Formulaire ajout / édition -->
+        <div class="form-section">
+            <h2>{{ formulaire.mode === 'ajout' ? 'Ajouter un artiste' : 'Modifier l\'artiste' }}</h2>
+            <div class="form-row">
+                <label>Nom</label>
+                <input v-model="formulaire.nom" placeholder="Nom" />
+            </div>
+            <div class="form-row">
+                <label>Prénom</label>
+                <input v-model="formulaire.prenom" placeholder="Prénom" />
+            </div>
+            <div class="form-row">
+                <label>Âge</label>
+                <input v-model.number="formulaire.age" type="number" placeholder="Âge" />
+            </div>
+            <div class="form-actions">
+                <button class="btn-primary" @click="soumettreFormulaire">
+                    {{ formulaire.mode === 'ajout' ? 'Ajouter' : 'Enregistrer' }}
+                </button>
+                <button class="btn-secondary" v-if="formulaire.mode === 'edition'" @click="annulerEdition">
+                    Annuler
+                </button>
+            </div>
+        </div>
+
+        <!-- Liste -->
+        <p class="loading" v-if="chargement">Chargement…</p>
+        <p v-else-if="artistes.length === 0 && !erreur">Aucun artiste pour l'instant.</p>
+        <div class="artists-grid" v-else>
+            <div class="artist-card" v-for="a in artistes" :key="a.id">
+                <div class="nom">{{ a.nom }}</div>
+                <div class="prenom">{{ a.prenom }}</div>
+                <div class="age" v-if="a.age != null">{{ a.age }} ans</div>
+                <div class="actions">
+                    <button class="btn-edit"   @click="editer(a)">Modifier</button>
+                    <button class="btn-danger" @click="supprimer(a.id)">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        // ─── URL de l'API ─────────────────────────────────────────────────────────
+        // À remplacer par l'URL de la gateway quand elle sera disponible.
+        const API_URL = 'http://localhost:8083/api/artistes'
+        // ─────────────────────────────────────────────────────────────────────────
+
+        Vue.createApp({
+            data() {
+                return {
+                    artistes:     [],
+                    chargement:   true,
+                    erreur:       null,
+                    confirmation: null,
+                    formulaire: {
+                        mode:   'ajout',  // 'ajout' | 'edition'
+                        id:     null,
+                        nom:    '',
+                        prenom: '',
+                        age:    null,
+                    }
+                }
+            },
+
+            created() {
+                this.chargerArtistes()
+            },
+
+            methods: {
+                // ── Lecture ──────────────────────────────────────────────────────
+                async chargerArtistes() {
+                    this.chargement = true
+                    this.erreur = null
+                    try {
+                        const res = await fetch(API_URL)
+                        if (!res.ok) throw new Error(`Erreur ${res.status}`)
+                        this.artistes = await res.json()
+                    } catch (e) {
+                        this.erreur = 'Impossible de charger les artistes : ' + e.message
+                    } finally {
+                        this.chargement = false
+                    }
+                },
+
+                // ── Formulaire ───────────────────────────────────────────────────
+                soumettreFormulaire() {
+                    if (this.formulaire.mode === 'ajout') {
+                        this.ajouterArtiste()
+                    } else {
+                        this.modifierArtiste()
+                    }
+                },
+
+                editer(artiste) {
+                    this.formulaire = {
+                        mode:   'edition',
+                        id:     artiste.id,
+                        nom:    artiste.nom,
+                        prenom: artiste.prenom,
+                        age:    artiste.age,
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                },
+
+                annulerEdition() {
+                    this.formulaire = { mode: 'ajout', id: null, nom: '', prenom: '', age: null }
+                },
+
+                // ── Ajout ─────────────────────────────────────────────────────────
+                async ajouterArtiste() {
+                    this.erreur = null
+                    this.confirmation = null
+                    const { nom, prenom, age } = this.formulaire
+                    if (!nom || !prenom) {
+                        this.erreur = 'Le nom et le prénom sont obligatoires.'
+                        return
+                    }
+                    try {
+                        const res = await fetch(API_URL, {
+                            method:  'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body:    JSON.stringify({ nom, prenom, age })
+                        })
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}))
+                            throw new Error(err.message || `Erreur ${res.status}`)
+                        }
+                        this.annulerEdition()
+                        this.confirmation = 'Artiste ajouté avec succès.'
+                        await this.chargerArtistes()
+                    } catch (e) {
+                        this.erreur = e.message
+                    }
+                },
+
+                // ── Modification ──────────────────────────────────────────────────
+                async modifierArtiste() {
+                    this.erreur = null
+                    this.confirmation = null
+                    const { id, nom, prenom, age } = this.formulaire
+                    if (!nom || !prenom) {
+                        this.erreur = 'Le nom et le prénom sont obligatoires.'
+                        return
+                    }
+                    try {
+                        const res = await fetch(`${API_URL}/${id}`, {
+                            method:  'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body:    JSON.stringify({ nom, prenom, age })
+                        })
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}))
+                            throw new Error(err.message || `Erreur ${res.status}`)
+                        }
+                        this.annulerEdition()
+                        this.confirmation = 'Artiste modifié avec succès.'
+                        await this.chargerArtistes()
+                    } catch (e) {
+                        this.erreur = e.message
+                    }
+                },
+
+                // ── Suppression ───────────────────────────────────────────────────
+                async supprimer(id) {
+                    const artiste = this.artistes.find(a => a.id === id)
+                    if (!confirm(`Supprimer ${artiste.prenom} ${artiste.nom} ?`)) return
+                    this.erreur = null
+                    this.confirmation = null
+                    try {
+                        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}))
+                            throw new Error(err.message || `Erreur ${res.status}`)
+                        }
+                        this.confirmation = `Artiste supprimé.`
+                        await this.chargerArtistes()
+                    } catch (e) {
+                        this.erreur = e.message
+                    }
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
