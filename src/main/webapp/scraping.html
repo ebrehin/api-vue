@@ -50,10 +50,16 @@
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        // ─── URL de l'API ─────────────────────────────────────────────────────────
-        // À remplacer par l'URL de la gateway quand elle sera disponible.
-        const API_URL = 'http://localhost:8082/api/scrap/film'
+        // ─── URL de l'API (gateway) ───────────────────────────────────────────────
+        const API_URL = 'http://localhost:8080/api/scrap/film'
         // ─────────────────────────────────────────────────────────────────────────
+
+        function getAuthHeaders(extra = {}) {
+            const token = localStorage.getItem('authToken')
+            const headers = { ...extra }
+            if (token) headers.Authorization = `Bearer ${token}`
+            return headers
+        }
 
         Vue.createApp({
             data() {
@@ -75,7 +81,9 @@
                     this.film       = null
 
                     try {
-                        const res = await fetch(`${API_URL}?query=${encodeURIComponent(q)}`)
+                        const res = await fetch(`${API_URL}?query=${encodeURIComponent(q)}`, {
+                            headers: getAuthHeaders()
+                        })
                         if (!res.ok) {
                             const err = await res.json().catch(() => ({}))
                             throw new Error(err.message || `Erreur ${res.status}`)

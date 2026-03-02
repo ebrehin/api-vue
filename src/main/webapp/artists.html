@@ -57,10 +57,16 @@
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        // ─── URL de l'API ─────────────────────────────────────────────────────────
-        // À remplacer par l'URL de la gateway quand elle sera disponible.
-        const API_URL = 'http://localhost:8083/api/artistes'
+        // ─── URL de l'API (gateway) ───────────────────────────────────────────────
+        const API_URL = 'http://localhost:8080/api/artistes'
         // ─────────────────────────────────────────────────────────────────────────
+
+        function getAuthHeaders(extra = {}) {
+            const token = localStorage.getItem('authToken')
+            const headers = { ...extra }
+            if (token) headers.Authorization = `Bearer ${token}`
+            return headers
+        }
 
         Vue.createApp({
             data() {
@@ -89,7 +95,7 @@
                     this.chargement = true
                     this.erreur = null
                     try {
-                        const res = await fetch(API_URL)
+                        const res = await fetch(API_URL, { headers: getAuthHeaders() })
                         if (!res.ok) throw new Error(`Erreur ${res.status}`)
                         this.artistes = await res.json()
                     } catch (e) {
@@ -135,7 +141,7 @@
                     try {
                         const res = await fetch(API_URL, {
                             method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                             body:    JSON.stringify({ nom, prenom, age })
                         })
                         if (!res.ok) {
@@ -162,7 +168,7 @@
                     try {
                         const res = await fetch(`${API_URL}/${id}`, {
                             method:  'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                             body:    JSON.stringify({ nom, prenom, age })
                         })
                         if (!res.ok) {
@@ -184,7 +190,10 @@
                     this.erreur = null
                     this.confirmation = null
                     try {
-                        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+                        const res = await fetch(`${API_URL}/${id}`, {
+                            method: 'DELETE',
+                            headers: getAuthHeaders()
+                        })
                         if (!res.ok) {
                             const err = await res.json().catch(() => ({}))
                             throw new Error(err.message || `Erreur ${res.status}`)

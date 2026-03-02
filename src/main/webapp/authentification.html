@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>API Vue — Authentification</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Authentification</h1>
+    <p>Connectez-vous ou créez un compte.</p>
+
+    <section class="form-section">
+        <h2>Connexion</h2>
+        <p class="msg-error" id="login-error" style="display:none;"></p>
+        <p class="msg-info" id="login-success" style="display:none;"></p>
+        <form id="login-form">
+            <div class="form-row">
+                <label for="login-pseudo">Pseudo</label>
+                <input id="login-pseudo" type="text" placeholder="alice" required>
+            </div>
+            <div class="form-row">
+                <label for="login-password">Mot de passe</label>
+                <input id="login-password" type="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn-primary" type="submit">Se connecter</button>
+                <button class="btn-secondary" type="reset">Effacer</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="form-section">
+        <h2>Inscription</h2>
+        <p class="msg-error" id="signup-error" style="display:none;"></p>
+        <p class="msg-info" id="signup-success" style="display:none;"></p>
+        <form id="signup-form">
+            <div class="form-row">
+                <label for="signup-pseudo">Pseudo</label>
+                <input id="signup-pseudo" type="text" placeholder="alice" required>
+            </div>
+            <div class="form-row">
+                <label for="signup-nom">Nom</label>
+                <input id="signup-nom" type="text" placeholder="Dupont" required>
+            </div>
+            <div class="form-row">
+                <label for="signup-prenom">Prénom</label>
+                <input id="signup-prenom" type="text" placeholder="Jean" required>
+            </div>
+            <div class="form-row">
+                <label for="signup-date">Date de naissance</label>
+                <input id="signup-date" type="date" required>
+            </div>
+            <div class="form-row">
+                <label for="signup-mdp">Mot de passe</label>
+                <input id="signup-mdp" type="password" placeholder="secret123" required>
+            </div>
+            <div class="form-row">
+                <label for="signup-statut">Statut</label>
+                <select id="signup-statut" required>
+                    <option value="ACTIF" selected>ACTIF</option>
+                    <option value="INACTIF">INACTIF</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="signup-adresse">Adresse</label>
+                <input id="signup-adresse" type="text" placeholder="12 rue des Lilas, Brest" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn-primary" type="submit">S'inscrire</button>
+                <button class="btn-secondary" type="reset">Effacer</button>
+            </div>
+        </form>
+    </section>
+
+    <a class="retour" href="index.html">← Retour à l'accueil</a>
+
+    <script src="authentification.js" defer></script>
+</body>
+</html>
