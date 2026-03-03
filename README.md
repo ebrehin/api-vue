@@ -57,9 +57,11 @@ docker compose down
 
 ## Pages
 
-| Page | URL | API consommée |
-|---|---|---|
-| Accueil | `/` | — |
-| Posters | `/posters.html` | `http://localhost:8081/api/posters` |
-| Artistes | `/artists.html` | `http://localhost:8083/api/artistes` |
-| Films | `/scraping.html` | `http://localhost:8082/api/scrap/film` |
+| Page | URL | API consommée | Port
+|---|---|---|----|
+| Accueil | `/` | — | 8085 |
+| | | Gateway | 8084 |
+| Auth | | Authentification | 8080 |
+| Posters | `/posters.html` | Posters | 8081 |
+| Artistes | `/artists.html` | Artistes | 8083 |
+| Films | `/scraping.html` | Scraping | 8082 |
