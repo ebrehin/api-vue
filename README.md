@@ -57,11 +57,11 @@ docker compose down
 
 ## Pages
 
-| Page | URL | API consommée | Port
-|---|---|---|----|
-| Accueil | `/` | — | 8085 |
-| | | Gateway | 8084 |
-| Auth | | Authentification | 8080 |
-| Posters | `/posters.html` | Posters | 8081 |
-| Artistes | `/artists.html` | Artistes | 8083 |
-| Films | `/scraping.html` | Scraping | 8082 |
+| Page | URL | API consommée | Port | Port bdd
+|---|---|---|---|---|
+| Accueil | `/` | | 8080 |
+| | | Gateway | 8081 | 3306
+| Artistes | `/artists.html` | Artistes | 8082 | 3307
+| Auth | `/authentification.html` | Authentification | 8083 | 3308
+| Posters | `/posters.html` | Posters | 8084 | 27017
+| Films | `/scraping.html` | Scraping | 8085 | 3309

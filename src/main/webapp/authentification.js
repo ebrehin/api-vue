@@ -1,5 +1,5 @@
-const REGISTER_URL = 'http://localhost:8080/auth/register'
-const LOGIN_URL = 'http://localhost:8080/auth/login'
+const REGISTER_URL = GATEWAY_URL + '/auth/register'
+const LOGIN_URL    = GATEWAY_URL + '/auth/login'
 
 function showMessage(errorEl, successEl, message, isSuccess) {
     if (isSuccess) {

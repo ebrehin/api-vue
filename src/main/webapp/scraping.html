@@ -48,11 +48,10 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        // ─── URL de l'API (gateway) ───────────────────────────────────────────────
-        const API_URL = 'http://localhost:8080/api/scrap/film'
-        // ─────────────────────────────────────────────────────────────────────────
+        const API_URL = GATEWAY_URL + '/api/scrap/film'
 
         function getAuthHeaders(extra = {}) {
             const token = localStorage.getItem('authToken')

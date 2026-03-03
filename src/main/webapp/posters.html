@@ -58,11 +58,10 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.js" crossorigin="anonymous"></script>
     <script>
-        // ─── URL de l'API (gateway) ───────────────────────────────────────────────
-        const API_URL = 'http://localhost:8080/api/posters'
-        // ─────────────────────────────────────────────────────────────────────────
+        const API_URL = GATEWAY_URL + '/api/posters'
 
         function getAuthHeaders(extra = {}) {
             const token = localStorage.getItem('authToken')
