@@ -51,7 +51,8 @@
     <script src="config.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        const API_URL = GATEWAY_URL + '/api/scrap/film'
+        const API_URL     = GATEWAY_URL + '/api/scrap/film'
+        const POSTERS_URL = GATEWAY_URL + '/api/posters'
 
         function getAuthHeaders(extra = {}) {
             const token = localStorage.getItem('authToken')
@@ -88,6 +89,26 @@
                             throw new Error(err.message || `Erreur ${res.status}`)
                         }
                         this.film = await res.json()
+                        if (this.film.poster && this.film.poster.imageUrl) {
+                            const id    = this.film.poster.imdbId ||
+                                (this.film.title + (this.film.publicationYear ? '-' + this.film.publicationYear : ''))
+                                    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+                            const titre = this.film.title
+                            const url   = this.film.poster.imageUrl
+                            try {
+                                const posterRes = await fetch(POSTERS_URL, {
+                                    method:  'POST',
+                                    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                                    body:    JSON.stringify({ id, titre, url })
+                                })
+                                if (!posterRes.ok && posterRes.status !== 409) {
+                                    const err = await posterRes.json().catch(() => ({}))
+                                    console.warn('Sauvegarde poster :', err.message || posterRes.status)
+                                }
+                            } catch (e) {
+                                console.warn('Sauvegarde poster :', e.message)
+                            }
+                        }
                     } catch (e) {
                         this.erreur = 'Impossible de récupérer le film : ' + e.message
                     } finally {
