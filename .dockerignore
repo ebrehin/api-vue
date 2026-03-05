@@ -1,0 +1,12 @@
+.git
+.idea
+.settings
+.vscode
+
+build
+target
+out
+
+*.log
+*.tmp
+*.swp
