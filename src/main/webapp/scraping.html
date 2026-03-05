@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script src="config.js"></script>
+    <script src="auth-header.js"></script>
     <div id="app">
         <a class="retour" href="index.html">← Accueil</a>
         <h1>Films</h1>
@@ -48,11 +50,11 @@
         </div>
     </div>
 
-    <script src="config.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
-        const API_URL     = GATEWAY_URL + '/api/scrap/film'
-        const POSTERS_URL = GATEWAY_URL + '/api/posters'
+        const API_URL      = GATEWAY_URL + '/api/scrap/film'
+        const POSTERS_URL  = GATEWAY_URL + '/api/posters'
+        const ARTISTS_URL  = GATEWAY_URL + '/api/artistes'
 
         function getAuthHeaders(extra = {}) {
             const token = localStorage.getItem('authToken')
@@ -89,6 +91,27 @@
                             throw new Error(err.message || `Erreur ${res.status}`)
                         }
                         this.film = await res.json()
+                        if (this.film.artists && this.film.artists.length > 0) {
+                            for (const artist of this.film.artists) {
+                                const nom = artist.lastName || artist.nom
+                                const prenom = artist.firstName || artist.prenom
+                                if (!nom || !prenom) continue
+                                try {
+                                    const artistRes = await fetch(ARTISTS_URL, {
+                                        method:  'POST',
+                                        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                                        body:    JSON.stringify({ nom, prenom, age: artist.age ?? null })
+                                    })
+                                    if (!artistRes.ok && artistRes.status !== 409) {
+                                        const err = await artistRes.json().catch(() => ({}))
+                                        console.warn('Sauvegarde artiste :', err.message || artistRes.status)
+                                    }
+                                } catch (e) {
+                                    console.warn('Sauvegarde artiste :', e.message)
+                                }
+                            }
+                        }
+
                         if (this.film.poster && this.film.poster.imageUrl) {
                             const id    = this.film.poster.imdbId ||
                                 (this.film.title + (this.film.publicationYear ? '-' + this.film.publicationYear : ''))

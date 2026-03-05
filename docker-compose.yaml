@@ -1,12 +1,7 @@
 services:
-
-  # ---------------------------------------------------------------------------
-  # Serveur Tomcat — déployé depuis le WAR construit avec Maven
-  # ---------------------------------------------------------------------------
-  tomcat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: vue-tomcat
+  api:
+    image: gitlab-depinfo.univ-brest.fr:5050/e22200893/apis/vue-api:v1.0.0
+    container_name: vue-api
+    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "10071:8080"
