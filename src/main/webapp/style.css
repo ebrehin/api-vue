@@ -1,3 +1,39 @@
+/* ── Auth Header (bandeau connexion) ─────────────────────────────────────── */
+.auth-header {
+    background: #2c3e50;
+    color: #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    font-size: 0.9em;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+.auth-status {
+    display: flex; align-items: center; gap: 8px;
+}
+.auth-dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+}
+.auth-dot.connected   { background: #2ecc71; }
+.auth-dot.disconnected { background: #e74c3c; }
+
+.btn-logout {
+    background: #e74c3c; color: white;
+    border: none; border-radius: 4px;
+    padding: 5px 14px; font-size: 0.85em;
+    cursor: pointer;
+}
+.btn-logout:hover { background: #c0392b; }
+
+.btn-login {
+    color: #3498db; text-decoration: none;
+    font-weight: 600; font-size: 0.9em;
+}
+.btn-login:hover { text-decoration: underline; }
 /* ── Base ────────────────────────────────────────────────────────────────── */
 body {
     font-family: sans-serif;

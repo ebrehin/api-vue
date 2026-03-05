@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && data.token) {
                 localStorage.setItem('authToken', data.token)
             }
+            if (data && data.pseudo) {
+                localStorage.setItem('authPseudo', data.pseudo)
+            }
             showMessage(loginError, loginSuccess, 'Connexion réussie.', true)
         } catch (e) {
             showMessage(loginError, loginSuccess, e.message || 'Erreur lors de la connexion.', false)
