@@ -1,27 +1,17 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Étape 1 : build Maven — produit le fichier api-vue.war
-# ─────────────────────────────────────────────────────────────────────────────
 FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /build
 
-WORKDIR /app
-COPY pom.xml .
-# Télécharge les dépendances en cache séparé (optimise la reconstruction de l'image)
-RUN mvn dependency:go-offline -q
+COPY pom.xml ./
+RUN mvn -q -DskipTests dependency:go-offline
 
 COPY src ./src
-RUN mvn package -DskipTests -q
+RUN mvn -q -DskipTests clean package
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Étape 2 : image Tomcat finale — déploie le WAR dans webapps/
-# ─────────────────────────────────────────────────────────────────────────────
 FROM tomcat:10.1-jdk17-temurin
+WORKDIR /usr/local/tomcat
 
-# Supprime les webapps par défaut de Tomcat (ROOT, docs, examples, etc.)
-RUN rm -rf /usr/local/tomcat/webapps/*
-
-# Copie notre WAR et le déploie à la racine (ROOT.war → accessible sur /)
-COPY --from=build /app/target/api-vue.war /usr/local/tomcat/webapps/ROOT.war
+RUN rm -rf webapps/*
+COPY --from=build /build/target/api-vue.war webapps/ROOT.war
 
 EXPOSE 8080
-
 CMD ["catalina.sh", "run"]

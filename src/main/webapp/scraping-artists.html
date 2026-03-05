@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Scraping Artistes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <a class="retour" href="index.html">← Accueil</a>
+        <h1>Scraping Artistes</h1>
+
+        <div class="search-bar">
+            <input v-model="query"
+                   placeholder="Nom de l'artiste…"
+                   @keyup.enter="rechercher" />
+            <button @click="rechercher" :disabled="chargement || !query.trim()">
+                {{ chargement ? 'Recherche…' : 'Rechercher' }}
+            </button>
+        </div>
+
+        <p class="msg-error" v-if="erreur">{{ erreur }}</p>
+        <p class="msg-info" v-if="confirmation">{{ confirmation }}</p>
+        <p class="loading" v-else-if="chargement">Chargement…</p>
+
+        <div class="artist-card" v-if="artiste">
+            <div class="nom">{{ artiste.nom || artiste.lastName || '-' }}</div>
+            <div class="prenom">{{ artiste.prenom || artiste.firstName || '-' }}</div>
+            <div class="age" v-if="artiste.age != null">{{ artiste.age }} ans</div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const SCRAP_URL   = GATEWAY_URL + '/api/scrap/artist/nom'
+        const ARTISTS_URL = GATEWAY_URL + '/api/artistes/'
+
+        function getAuthHeaders(extra = {}) {
+            const token = localStorage.getItem('authToken')
+            const headers = { ...extra }
+            if (token) headers.Authorization = `Bearer ${token}`
+            return headers
+        }
+
+        Vue.createApp({
+            data() {
+                return {
+                    query: '',
+                    artiste: null,
+                    chargement: false,
+                    erreur: null,
+                    confirmation: null,
+                }
+            },
+
+            methods: {
+                async rechercher() {
+                    const q = this.query.trim()
+                    if (!q) return
+
+                    this.chargement = true
+                    this.erreur = null
+                    this.confirmation = null
+                    this.artiste = null
+
+                    try {
+                        const res = await fetch(`${SCRAP_URL}?query=${encodeURIComponent(q)}`, {
+                            headers: getAuthHeaders()
+                        })
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}))
+                            throw new Error(err.message || `Erreur ${res.status}`)
+                        }
+
+                        this.artiste = await res.json()
+
+                        const payload = {
+                            nom: this.artiste.nom || this.artiste.lastName || '',
+                            prenom: this.artiste.prenom || this.artiste.firstName || '',
+                            age: this.artiste.age ?? null,
+                        }
+
+                        if (!payload.nom || !payload.prenom) {
+                            throw new Error("Le scraping n'a pas retourné de nom/prénom exploitables.")
+                        }
+
+                        const postRes = await fetch(ARTISTS_URL, {
+                            method: 'POST',
+                            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                            body: JSON.stringify(payload)
+                        })
+
+                        if (!postRes.ok) {
+                            const err = await postRes.json().catch(() => ({}))
+                            throw new Error(err.message || `Erreur ${postRes.status} pendant l'ajout artiste`)
+                        }
+
+                        this.confirmation = 'Artiste scrapé et ajouté dans api/artistes/.'
+                    } catch (e) {
+                        this.erreur = 'Impossible de scraper/ajouter l\'artiste : ' + e.message
+                    } finally {
+                        this.chargement = false
+                    }
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
