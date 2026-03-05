@@ -1,1 +1,1 @@
-const GATEWAY_URL = 'http://info-tpsi.univ-brest.fr:10070';
+const GATEWAY_URL = 'http://localhost:8082';
