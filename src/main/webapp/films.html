@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Catalogue de Films</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <a class="retour" href="index.html">← Accueil</a>
+        <h1>Catalogue de Films</h1>
+
+        <!-- Barre de filtres -->
+        <div class="films-filters">
+            <input v-model="searchQuery" placeholder="Rechercher un film…" class="filter-input" />
+            <select v-model="filterGenre" class="filter-select">
+                <option value="">Tous les genres</option>
+                <option v-for="g in allGenres" :key="g" :value="g">{{ g }}</option>
+            </select>
+            <select v-model="filterDispo" class="filter-select">
+                <option value="">Tous</option>
+                <option value="available">Disponibles</option>
+                <option value="unavailable">Indisponibles</option>
+            </select>
+        </div>
+
+        <!-- Grille de films -->
+        <p v-if="filteredFilms.length === 0" class="msg-info">Aucun film ne correspond à votre recherche.</p>
+
+        <div class="films-grid">
+            <div class="film-catalog-card"
+                 v-for="film in filteredFilms"
+                 :key="film.id"
+                 @click="selectFilm(film)"
+                 :class="{ selected: selectedFilm && selectedFilm.id === film.id }">
+
+                <img v-if="film.poster && film.poster.imageUrl"
+                     :src="film.poster.imageUrl"
+                     :alt="film.title"
+                     @error="posterError($event)" />
+                <div class="no-poster" v-else>Pas d'affiche</div>
+
+                <div class="film-catalog-info">
+                    <div class="film-title">{{ film.title }}</div>
+                    <div class="film-year">{{ film.publicationYear }}</div>
+                    <div class="film-director">{{ film.director.firstName }} {{ film.director.lastName }}</div>
+                    <div class="film-genres">
+                        <span class="genre-badge" v-for="g in film.genres" :key="g">{{ g }}</span>
+                    </div>
+                    <div class="film-meta">
+                        <span class="availability-badge" :class="film.availableForRental ? 'available' : 'unavailable'">
+                            {{ film.availableForRental ? 'Disponible' : 'Indisponible' }}
+                        </span>
+                        <span class="price-tag" v-if="film.availableForRental">{{ film.price.toFixed(2) }} €</span>
+                    </div>
+                    <div class="age-badge" v-if="film.ageMinimum > 0">{{ film.ageMinimum }}+</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Détail du film sélectionné -->
+        <div class="film-detail-overlay" v-if="selectedFilm" @click.self="closeDetail">
+            <div class="film-detail">
+                <button class="btn-close" @click="closeDetail">✕</button>
+
+                <div class="film-detail-content">
+                    <div class="film-detail-poster">
+                        <img v-if="selectedFilm.poster && selectedFilm.poster.imageUrl"
+                             :src="selectedFilm.poster.imageUrl"
+                             :alt="selectedFilm.title"
+                             @error="posterError($event)" />
+                        <div class="no-poster large" v-else>Pas d'affiche</div>
+                    </div>
+
+                    <div class="film-detail-info">
+                        <h2>{{ selectedFilm.title }}</h2>
+                        <p class="film-detail-year">{{ selectedFilm.publicationYear }}</p>
+
+                        <div class="film-detail-badges">
+                            <span class="availability-badge" :class="selectedFilm.availableForRental ? 'available' : 'unavailable'">
+                                {{ selectedFilm.availableForRental ? 'Disponible à la location' : 'Fermé à la location' }}
+                            </span>
+                            <span class="price-tag large" v-if="selectedFilm.availableForRental">{{ selectedFilm.price.toFixed(2) }} €</span>
+                            <span class="age-badge large" v-if="selectedFilm.ageMinimum > 0">Interdit aux moins de {{ selectedFilm.ageMinimum }} ans</span>
+                        </div>
+
+                        <div class="film-detail-section">
+                            <h3>Réalisateur</h3>
+                            <p>{{ selectedFilm.director.firstName }} {{ selectedFilm.director.lastName }}</p>
+                        </div>
+
+                        <div class="film-detail-section">
+                            <h3>Genres</h3>
+                            <div class="film-genres">
+                                <span class="genre-badge" v-for="g in selectedFilm.genres" :key="g">{{ g }}</span>
+                            </div>
+                        </div>
+
+                        <div class="film-detail-section">
+                            <h3>Acteurs</h3>
+                            <ul class="actors-list">
+                                <li v-for="(a, i) in selectedFilm.actors" :key="i">
+                                    {{ a.firstName }} {{ a.lastName }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="film-detail-section">
+                            <h3>
+                                Évaluations
+                                <span class="eval-avg" v-if="selectedFilm.evaluations.length > 0">
+                                    — Moyenne : {{ moyenneEvaluations(selectedFilm) }}/5
+                                    <span class="stars-inline">{{ starsDisplay(moyenneEvaluations(selectedFilm)) }}</span>
+                                </span>
+                            </h3>
+                            <p v-if="selectedFilm.evaluations.length === 0" style="color:#aaa;">Aucune évaluation pour ce film.</p>
+                            <div class="evaluations-list" v-else>
+                                <div class="evaluation-card" v-for="(ev, i) in selectedFilm.evaluations" :key="i">
+                                    <div class="eval-header">
+                                        <span class="eval-pseudo">{{ ev.pseudo }}</span>
+                                        <span class="eval-stars">{{ starsDisplay(ev.note) }}</span>
+                                        <span class="eval-note">{{ ev.note }}/5</span>
+                                    </div>
+                                    <p class="eval-comment" v-if="ev.commentaire">{{ ev.commentaire }}</p>
+                                    <p class="eval-comment none" v-else>Pas de commentaire.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        /**
+         * Données mockées — simule une API Films qui n'existe pas encore.
+         * Modèle complet du sujet : titre, année, réalisateur, acteurs, genres,
+         * âge minimum, prix, disponibilité location, poster, évaluations.
+         */
+        const MOCK_FILMS = [
+            {
+                id: 1,
+                title: "The Shawshank Redemption",
+                publicationYear: 1994,
+                director: { firstName: "Frank", lastName: "Darabont" },
+                actors: [
+                    { firstName: "Tim", lastName: "Robbins" },
+                    { firstName: "Morgan", lastName: "Freeman" },
+                    { firstName: "Bob", lastName: "Gunton" }
+                ],
+                genres: ["Drame"],
+                ageMinimum: 12,
+                price: 3.99,
+                availableForRental: true,
+                poster: {
+                    imdbId: "tt0111161",
+                    title: "The Shawshank Redemption",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BMDAyY2FhYjctNDc5OS00MDNlLThiMGUtY2UxYWVkNGY2ZjljXkEyXkFqcGc@._V1_SX300.jpg"
+                },
+                evaluations: [
+                    { pseudo: "cinephile42", note: 5, commentaire: "Un chef-d'œuvre intemporel." },
+                    { pseudo: "marie_m", note: 5, commentaire: "Le meilleur film que j'ai vu." },
+                    { pseudo: "bob_review", note: 4, commentaire: null }
+                ]
+            },
+            {
+                id: 2,
+                title: "The Dark Knight",
+                publicationYear: 2008,
+                director: { firstName: "Christopher", lastName: "Nolan" },
+                actors: [
+                    { firstName: "Christian", lastName: "Bale" },
+                    { firstName: "Heath", lastName: "Ledger" },
+                    { firstName: "Aaron", lastName: "Eckhart" },
+                    { firstName: "Gary", lastName: "Oldman" }
+                ],
+                genres: ["Action", "Drame", "Thriller"],
+                ageMinimum: 13,
+                price: 4.99,
+                availableForRental: true,
+                poster: {
+                    imdbId: "tt0468569",
+                    title: "The Dark Knight",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg"
+                },
+                evaluations: [
+                    { pseudo: "batman_fan", note: 5, commentaire: "Heath Ledger est incroyable en Joker." },
+                    { pseudo: "cinephile42", note: 4, commentaire: "Excellent mais un peu long." }
+                ]
+            },
+            {
+                id: 3,
+                title: "Pulp Fiction",
+                publicationYear: 1994,
+                director: { firstName: "Quentin", lastName: "Tarantino" },
+                actors: [
+                    { firstName: "John", lastName: "Travolta" },
+                    { firstName: "Uma", lastName: "Thurman" },
+                    { firstName: "Samuel L.", lastName: "Jackson" },
+                    { firstName: "Bruce", lastName: "Willis" }
+                ],
+                genres: ["Crime", "Drame"],
+                ageMinimum: 16,
+                price: 3.49,
+                availableForRental: true,
+                poster: {
+                    imdbId: "tt0110912",
+                    title: "Pulp Fiction",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BYTViYTE3ZGQtNDBlMC00ZTAyLTkyODMtZGRiZDg0MjA2YThkXkEyXkFqcGc@._V1_SX300.jpg"
+                },
+                evaluations: [
+                    { pseudo: "tarantino_lover", note: 5, commentaire: "Dialogue géniaux, scénario non-linéaire parfait." },
+                    { pseudo: "marie_m", note: 4, commentaire: "Violent mais brillant." },
+                    { pseudo: "bob_review", note: 3, commentaire: "Pas pour tout le monde." },
+                    { pseudo: "jean_p", note: 5, commentaire: null }
+                ]
+            },
+            {
+                id: 4,
+                title: "Le Fabuleux Destin d'Amélie Poulain",
+                publicationYear: 2001,
+                director: { firstName: "Jean-Pierre", lastName: "Jeunet" },
+                actors: [
+                    { firstName: "Audrey", lastName: "Tautou" },
+                    { firstName: "Mathieu", lastName: "Kassovitz" },
+                    { firstName: "Jamel", lastName: "Debbouze" }
+                ],
+                genres: ["Comédie", "Romance"],
+                ageMinimum: 0,
+                price: 2.99,
+                availableForRental: true,
+                poster: {
+                    imdbId: "tt0211915",
+                    title: "Amélie",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BNDg4NjM1YjMtYmNhZC00MjM0LWFiZmYtNGY1YjA3MzZmODc5XkEyXkFqcGdeQXVyNDk3NzU2MTQ@._V1_SX300.jpg"
+                },
+                evaluations: [
+                    { pseudo: "paris_lover", note: 5, commentaire: "Magnifique, poétique, une bulle de bonheur." },
+                    { pseudo: "cinephile42", note: 4, commentaire: "Visuellement superbe." }
+                ]
+            },
+            {
+                id: 5,
+                title: "Interstellar",
+                publicationYear: 2014,
+                director: { firstName: "Christopher", lastName: "Nolan" },
+                actors: [
+                    { firstName: "Matthew", lastName: "McConaughey" },
+                    { firstName: "Anne", lastName: "Hathaway" },
+                    { firstName: "Jessica", lastName: "Chastain" },
+                    { firstName: "Michael", lastName: "Caine" }
+                ],
+                genres: ["Science-Fiction", "Aventure", "Drame"],
+                ageMinimum: 10,
+                price: 4.49,
+                availableForRental: false,
+                poster: {
+                    imdbId: "tt0816692",
+                    title: "Interstellar",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BYzdjMDAxZGItMjI2My00ODA1LTlkNzItOWFjMDU5ZDJlYWY3XkEyXkFqcGc@._V1_SX300.jpg"
+                },
+                evaluations: [
+                    { pseudo: "space_nerd", note: 5, commentaire: "Époustouflant visuellement et émotionnellement." }
+                ]
+            },
+            {
+                id: 6,
+                title: "Saw",
+                publicationYear: 2004,
+                director: { firstName: "James", lastName: "Wan" },
+                actors: [
+                    { firstName: "Cary", lastName: "Elwes" },
+                    { firstName: "Leigh", lastName: "Whannell" },
+                    { firstName: "Danny", lastName: "Glover" }
+                ],
+                genres: ["Horreur", "Thriller"],
+                ageMinimum: 18,
+                price: 2.99,
+                availableForRental: false,
+                poster: {
+                    imdbId: "tt0387564",
+                    title: "Saw",
+                    imageUrl: "https://m.media-amazon.com/images/M/MV5BMjAyNTU2MjYyNl5BMl5BanBnXkFtZTcwMjUzMjUyMw@@._V1_SX300.jpg"
+                },
+                evaluations: []
+            }
+        ]
+
+        Vue.createApp({
+            data() {
+                return {
+                    films: MOCK_FILMS,
+                    selectedFilm: null,
+                    searchQuery: '',
+                    filterGenre: '',
+                    filterDispo: '',
+                }
+            },
+
+            computed: {
+                allGenres() {
+                    const set = new Set()
+                    this.films.forEach(f => f.genres.forEach(g => set.add(g)))
+                    return [...set].sort()
+                },
+
+                filteredFilms() {
+                    return this.films.filter(f => {
+                        const matchSearch = !this.searchQuery ||
+                            f.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            (f.director.firstName + ' ' + f.director.lastName).toLowerCase().includes(this.searchQuery.toLowerCase())
+
+                        const matchGenre = !this.filterGenre ||
+                            f.genres.includes(this.filterGenre)
+
+                        const matchDispo = !this.filterDispo ||
+                            (this.filterDispo === 'available' && f.availableForRental) ||
+                            (this.filterDispo === 'unavailable' && !f.availableForRental)
+
+                        return matchSearch && matchGenre && matchDispo
+                    })
+                }
+            },
+
+            methods: {
+                selectFilm(film) {
+                    this.selectedFilm = film
+                    document.body.style.overflow = 'hidden'
+                },
+
+                closeDetail() {
+                    this.selectedFilm = null
+                    document.body.style.overflow = ''
+                },
+
+                moyenneEvaluations(film) {
+                    if (!film.evaluations || film.evaluations.length === 0) return 0
+                    const sum = film.evaluations.reduce((acc, ev) => acc + ev.note, 0)
+                    return (sum / film.evaluations.length).toFixed(1)
+                },
+
+                starsDisplay(note) {
+                    const n = Math.round(Number(note))
+                    return '★'.repeat(n) + '☆'.repeat(5 - n)
+                },
+
+                posterError(event) {
+                    event.target.style.display = 'none'
+                    const placeholder = document.createElement('div')
+                    placeholder.className = 'no-poster'
+                    placeholder.textContent = 'Image indisponible'
+                    event.target.parentNode.insertBefore(placeholder, event.target)
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
