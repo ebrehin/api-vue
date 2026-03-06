@@ -4,4 +4,4 @@ services:
     container_name: vue-api
     restart: unless-stopped
     ports:
-      - "10071:8080"
+      - "10072:8080"
